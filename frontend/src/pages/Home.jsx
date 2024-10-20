@@ -39,7 +39,7 @@ const Home = () => {
             </section>
             <footer className="mt-20 w-full bg-gray-800 py-10 px-4 text-center">
                 <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-4">Created by Raghav Singla</h2>
-                <p className="text-gray-300 mb-4">Full Stack Developer | MERN Specialist | Open Source Contributor</p>
+                <p className="text-gray-300 mb-4">Full Stack Developer | MERN Stack | Open Source Contributor</p>
                 <div className="flex justify-center space-x-6 text-2xl">
                     <a href="https://www.linkedin.com/in/singlaraghav" className="text-blue-400 hover:text-blue-300 transition-colors duration-300" target="_blank" rel="noopener noreferrer">
                         <FaLinkedin />

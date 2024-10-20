@@ -1,6 +1,6 @@
 {
 	"name": "mern-vite-shadcn-template",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "A MERN stack template with frontend and backend boilerplate.",
 	"main": "backend/server.js",
 	"`scripts": {
