@@ -1,9 +1,9 @@
 {
 	"name": "mern-vite-shadcn-template",
-	"version": "2.0.1",
+	"version": "2.1.2",
 	"description": "A MERN stack template with frontend and backend boilerplate.",
 	"main": "backend/server.js",
-	"scripts": {
+	"`scripts": {
 		"dev": " nodemon backend/server.js",
 		"start": "node backend/server.js",
 		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
@@ -11,9 +11,7 @@
 	"keywords": [],
 	"author": "Raghav Singla",
 	"type": "module",
-	"bin":{
-		"mern-vite-shadcn-template":"cli.js"
-	},
+	"bin":"./bin/cli.js",
 	"license": "ISC",
 	"dependencies": {
 		"bcryptjs": "^2.4.3",
