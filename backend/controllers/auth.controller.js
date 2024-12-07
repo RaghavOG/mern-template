@@ -1,105 +1,104 @@
-import { User } from "../models/user.model.js";
+import  User  from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateToken.js";
 
+// Signup Controller
 export async function signup(req, res) {
-	try {
-		const { email, password, username } = req.body;
+  try {
+    const { username, email, password } = req.body;
 
-		if (!email || !password || !username) {
-			return res.status(400).json({ success: false, message: "All fields are required" });
-		}
+    // Validate required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required." });
+    }
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Check if email or username is already taken
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: "Email or username already in use." });
+    }
 
-		if (!emailRegex.test(email)) {
-			return res.status(400).json({ success: false, message: "Invalid email" });
-		}
+    // Hash the password
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
-		if (password.length < 6) {
-			return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
-		}
+    // Create the user
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
 
-		const existingUserByEmail = await User.findOne({ email: email });
+    await user.save();
 
-		if (existingUserByEmail) {
-			return res.status(400).json({ success: false, message: "Email already exists" });
-		}
+    // Generate token and set cookie
+    generateTokenAndSetCookie(user._id, res);
 
-		const existingUserByUsername = await User.findOne({ username: username });
-
-		if (existingUserByUsername) {
-			return res.status(400).json({ success: false, message: "Username already exists" });
-		}
-
-		const salt = await bcryptjs.genSalt(10);
-		const hashedPassword = await bcryptjs.hash(password, salt);
-
-
-		const newUser = new User({
-			email,
-			password: hashedPassword,
-			username,
-		});
-
-		generateTokenAndSetCookie(newUser._id, res);
-		await newUser.save();
-
-		res.status(201).json({
-			success: true,
-			user: {
-				...newUser._doc,
-				password: "",
-			},
-		});
-	} catch (error) {
-		console.log("Error in signup controller", error.message);
-		res.status(500).json({ success: false, message: "Internal server error" });
-	}
+    res.status(201).json({ success: true, message: "User registered successfully.", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
 }
 
+// Login Controller
 export async function login(req, res) {
-	try {
-		const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-		if (!email || !password) {
-			return res.status(400).json({ success: false, message: "All fields are required" });
-		}
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required." });
+    }
 
-		const user = await User.findOne({ email: email });
-		if (!user) {
-			return res.status(404).json({ success: false, message: "Invalid credentials" });
-		}
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid email or password." });
+    }
 
-		const isPasswordCorrect = await bcryptjs.compare(password, user.password);
+    // Compare the passwords
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid email or password." });
+    }
 
-		if (!isPasswordCorrect) {
-			return res.status(400).json({ success: false, message: "Invalid credentials" });
-		}
+    // Generate token and set cookie
+    generateTokenAndSetCookie(user._id, res);
 
-		generateTokenAndSetCookie(user._id, res);
-
-		res.status(200).json({
-			success: true,
-			user: {
-				...user._doc,
-				password: "",
-			},
-		});
-	} catch (error) {
-		console.log("Error in login controller", error.message);
-		res.status(500).json({ success: false, message: "Internal server error" });
-	}
+    res.status(200).json({ success: true, message: "Login successful.", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
 }
 
+// Logout Controller
 export async function logout(req, res) {
-	try {
-		res.clearCookie("jwt-token");
-		res.status(200).json({ success: true, message: "Logged out successfully" });
-	} catch (error) {
-		console.log("Error in logout controller", error.message);
-		res.status(500).json({ success: false, message: "Internal server error" });
-	}
+  try {
+    res.clearCookie("jwt-chat-token", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+    });
+    res.status(200).json({ success: true, message: "Logout successful." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
 }
 
+// Auth Check Controller
+export async function authCheck(req, res) {
+  try {
+    const user = req.user; // Retrieved from middleware (protectRoute)
 
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized." });
+    }
+
+    res.status(200).json({ success: true, message: "Authorized.", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
+}

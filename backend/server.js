@@ -3,8 +3,12 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import cors from "cors";
 import helmet from "helmet";
+import morgan from "morgan";
 
 import authRoutes from "./routes/auth.route.js";
+import userRoutes from "./routes/user.route.js";
+import friendRoutes from "./routes/freinds.route.js";
+import messageRoutes from "./routes/message.route.js";
 
 
 import { ENV_VARS } from "./config/envVars.js";
@@ -27,9 +31,17 @@ const __dirname = path.resolve();
 app.use(express.json()); 
 app.use(cookieParser());
 app.use(helmet());
+app.use(morgan("dev"));
 
+app.get("/test", (req, res) => {
+    res.send("Hello World");
+});
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", protectRoute, userRoutes);
+app.use("/api/v1/friends", protectRoute, friendRoutes);
+app.use("/api/v1/messages", protectRoute, messageRoutes);
+
 
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
